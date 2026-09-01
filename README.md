@@ -2,7 +2,7 @@
 
 Aplikasi Netlify tanpa database yang membaca Google Form publik, menyimpan struktur soal di Netlify Blobs, menampilkan satu soal per layar, lalu meneruskan seluruh jawaban ke endpoint `formResponse` Google Form asli.
 
-Versi 1.1.0 menambahkan mode fullscreen, tata letak tanpa scroll halaman, deteksi pelanggaran, dan submit otomatis pada pelanggaran ketiga.
+Versi 1.2.0 menambahkan identitas visual profesional dan branding konsisten “by Suryo Agung Nugroho” pada halaman generator dan ruang ujian.
 
 ## Menjalankan secara lokal
 
