@@ -1,10 +1,13 @@
-const { getStore } = require('@netlify/blobs');
+const { connectLambda, getStore } = require('@netlify/blobs');
 
 const STORE = 'google-form-cache';
 const TYPE_NAMES = {0:'SHORT',1:'LONG',2:'RADIO',3:'DROPDOWN',4:'CHECKBOX',5:'UNSUPPORTED',7:'UNSUPPORTED',9:'UNSUPPORTED',10:'UNSUPPORTED'};
 
 exports.handler = async (event) => {
   try {
+    // Handler CommonJS ini berjalan dalam Lambda compatibility mode.
+    // Netlify Blobs memerlukan konteks event sebelum getStore dipanggil.
+    connectLambda(event);
     if (event.httpMethod === 'GET') {
       const id = event.queryStringParameters?.id;
       if (!id) return reply(400,{error:'ID ujian tidak ditemukan.'});
@@ -44,7 +47,7 @@ async function fetchHtml(url){const r=await fetch(url,{headers:{'user-agent':'Mo
 function parseGoogleForm(html,formId){const marker='FB_PUBLIC_LOAD_DATA_';const start=html.indexOf(marker);if(start<0)throw userError('Struktur Google Form tidak ditemukan. Form mungkin mewajibkan login atau tidak dipublikasikan.');const eq=html.indexOf('=',start),end=html.indexOf(';</script>',eq);if(eq<0||end<0)throw userError('Data Google Form tidak dapat dibaca.');let data;try{data=JSON.parse(html.slice(eq+1,end).trim())}catch{throw userError('Format internal Google Form berubah dan belum dapat diproses.');}
   const meta=data?.[1]||[];const rawQuestions=meta?.[1]||meta?.[8]||[];const candidates=Array.isArray(rawQuestions)?rawQuestions:[];const questions=[];
   for(const q of candidates){if(!Array.isArray(q))continue;const title=typeof q[1]==='string'?q[1]:'Pertanyaan tanpa judul';const typeCode=Number.isInteger(q[3])?q[3]:-1;const field=Array.isArray(q[4])?q[4][0]:null;if(!Array.isArray(field))continue;const numericId=field[0];if(numericId===null||numericId===undefined)continue;const options=extractOptions(field[1]);const image=findImage(q);questions.push({entryId:`entry.${numericId}`,title,type:TYPE_NAMES[typeCode]||'UNSUPPORTED',required:Boolean(field[2]),options,image,unsupportedLabel:unsupportedLabel(typeCode)});}
-  return {formId,title:cleanText(meta?.[8]||data?.[3]||'Ujian'),description:cleanText(meta?.[0]||''),questions};
+  return {formId,title:extractDocumentTitle(html)||cleanText(meta?.[8]||data?.[3]||'Ujian'),description:cleanText(meta?.[0]||''),questions};
 }
 function extractOptions(raw){if(!Array.isArray(raw))return[];return raw.map(x=>Array.isArray(x)?x[0]:x).filter(x=>typeof x==='string')}
 function findImage(node){let found=null;(function walk(v){if(found)return;if(typeof v==='string'&&/^https:\/\/(?:lh\d+\.googleusercontent\.com|lh\d+\.ggpht\.com)\//.test(v))found=v;else if(Array.isArray(v))v.forEach(walk)})(node);return found}
@@ -53,6 +56,8 @@ function publicForm(v){return {id:encodeId(v.formId),title:v.title,description:v
 function extractFormId(url){const m=String(url).match(/\/forms\/d\/e\/([a-zA-Z0-9_-]+)/);if(!m)throw userError('Tautan harus berupa Google Form publik dengan format /forms/d/e/...');return m[1]}
 function encodeId(id){return Buffer.from(id).toString('base64url')}function decodeId(v){let id;try{id=Buffer.from(v,'base64url').toString('utf8')}catch{throw userError('ID ujian tidak valid.')}if(!/^[a-zA-Z0-9_-]{20,}$/.test(id))throw userError('ID ujian tidak valid.');return id}
 function cacheKey(id){return `form-${id}`}function canonicalViewUrl(id){return `https://docs.google.com/forms/d/e/${id}/viewform`}function cleanText(v){return typeof v==='string'?v:''}
+function extractDocumentTitle(html){const match=html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);return match?decodeEntities(match[1].trim()):''}
+function decodeEntities(text){return text.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'")}
 function userError(message,status=400){const e=new Error(message);e.publicMessage=message;e.status=status;return e}
 function reply(statusCode,body){return{statusCode,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store','access-control-allow-origin':'*'},body:JSON.stringify(body)}}
 
