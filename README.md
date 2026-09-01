@@ -2,7 +2,7 @@
 
 Aplikasi Netlify tanpa database yang membaca Google Form publik, menyimpan struktur soal di Netlify Blobs, menampilkan satu soal per layar, lalu meneruskan seluruh jawaban ke endpoint `formResponse` Google Form asli.
 
-Versi 1.0.1 menginisialisasi konteks Netlify Blobs untuk Lambda compatibility mode.
+Versi 1.1.0 menambahkan mode fullscreen, tata letak tanpa scroll halaman, deteksi pelanggaran, dan submit otomatis pada pelanggaran ketiga.
 
 ## Menjalankan secara lokal
 
