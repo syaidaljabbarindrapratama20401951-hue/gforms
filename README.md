@@ -2,7 +2,7 @@
 
 Aplikasi Netlify tanpa database yang membaca Google Form publik secara langsung, menampilkan satu soal per layar, lalu meneruskan seluruh jawaban ke endpoint `formResponse` Google Form asli.
 
-Versi 2.3.0 menambahkan pengaturan bukti peserta: Nonaktif atau Ringkas. Mode Ringkas menghasilkan PDF berisi informasi pengiriman, nomor soal, jawaban peserta, dan status ragu-ragu tanpa memuat teks maupun gambar soal.
+Versi 2.3.1 memperluas dukungan gambar pertanyaan Google Form, termasuk URL tanpa protokol, variasi domain media Google, beberapa gambar dalam satu soal, dan blok gambar yang ditempatkan sebelum pertanyaan.
 
 ## Menjalankan secara lokal
 
@@ -52,6 +52,7 @@ Drag-and-drop folder mentah di halaman Netlify Drop tidak selalu menyertakan pro
 - Ringkasan jawaban sebelum submit dan alasan penghentian jika batas pelanggaran tercapai.
 - Halaman selesai menyediakan Salin Nomor, Kerjakan Lagi, dan Keluar.
 - Jika guru mengaktifkan bukti Ringkas, tombol Unduh PDF Ringkas ditampilkan. PDF tidak memuat teks soal, gambar soal, pilihan lain, kunci, ataupun nilai.
+- Gambar yang melekat pada pertanyaan atau ditempatkan sebagai blok sebelum pertanyaan ditampilkan secara responsif. Jika media gagal dimuat, soal tetap berfungsi dan menampilkan pemberitahuan gambar.
 - Kerjakan Lagi selalu meminta konfirmasi karena dapat menghasilkan respons Google Form tambahan.
 
 ## Catatan teknis
