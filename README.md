@@ -2,7 +2,7 @@
 
 Aplikasi Netlify tanpa database yang membaca Google Form publik secara langsung, menampilkan satu soal per layar, lalu meneruskan seluruh jawaban ke endpoint `formResponse` Google Form asli.
 
-Versi 2.1.0 menghapus Netlify Blobs dan penyimpanan progres di browser. Struktur dan metadata pengiriman selalu dibaca langsung dari Google Form, sedangkan jawaban hanya berada di memori halaman selama ujian berlangsung.
+Versi 2.2.0 menambahkan Tema Ujian, Bisnis, dan Casual beserta mode terang/gelap; pemeriksaan kesiapan perangkat; navigasi dan aksesibilitas yang lebih lengkap; peringatan waktu; serta halaman hasil dengan Kerjakan Lagi, Keluar, dan unduh bukti.
 
 ## Menjalankan secara lokal
 
@@ -38,11 +38,22 @@ Drag-and-drop folder mentah di halaman Netlify Drop tidak selalu menyertakan pro
 1. Atur Google Form agar dapat dibuka dan diisi tanpa login.
 2. Tempel tautannya di halaman admin.
 3. Klik **Baca Formulir**.
-4. Isi informasi ujian dan pengaturan keamanan.
+4. Isi informasi ujian, pilih tema, lalu atur keamanan dan bunyi peringatan.
 5. Klik **Simpan & Buat Link Ujian**, lalu bagikan tautannya.
 6. Jika isi Google Form berubah, klik **Baca Ulang** dan simpan kembali konfigurasi.
 
-## Catatan versi 2.0
+## Fitur versi 2.2
+
+- Tema Ujian, Bisnis, dan Casual dengan pratinjau serta mode terang/gelap.
+- Pemeriksaan koneksi, fullscreen, orientasi, dan jumlah soal sebelum mulai.
+- Progress persentase; filter nomor Semua/Belum/Ragu; pencarian soal belum dijawab; mode fokus; dan pengaturan ukuran teks.
+- Swipe kiri/kanan untuk navigasi soal pada smartphone.
+- Peringatan sisa waktu 10, 5, dan 1 menit dengan bunyi opsional.
+- Ringkasan jawaban sebelum submit dan alasan penghentian jika batas pelanggaran tercapai.
+- Halaman selesai menyediakan Salin Nomor, Unduh Bukti PNG, Kerjakan Lagi, dan Keluar.
+- Kerjakan Lagi selalu meminta konfirmasi karena dapat menghasilkan respons Google Form tambahan.
+
+## Catatan teknis
 
 - Tidak ada deteksi atau halaman identitas khusus. Semua field Google Form yang didukung diperlakukan sebagai pertanyaan biasa dan dikirim ke `entry ID` aslinya.
 - Jawaban, posisi soal, tanda ragu-ragu, urutan opsi, timer, dan jumlah pelanggaran hanya berada di memori halaman dan langsung hilang ketika halaman dibuka ulang.
