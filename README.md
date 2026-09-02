@@ -2,7 +2,7 @@
 
 Aplikasi Netlify tanpa database yang membaca Google Form publik secara langsung, menampilkan satu soal per layar, lalu meneruskan seluruh jawaban ke endpoint `formResponse` Google Form asli.
 
-Versi 2.2.0 menambahkan Tema Ujian, Bisnis, dan Casual beserta mode terang/gelap; pemeriksaan kesiapan perangkat; navigasi dan aksesibilitas yang lebih lengkap; peringatan waktu; serta halaman hasil dengan Kerjakan Lagi, Keluar, dan unduh bukti.
+Versi 2.3.0 menambahkan pengaturan bukti peserta: Nonaktif atau Ringkas. Mode Ringkas menghasilkan PDF berisi informasi pengiriman, nomor soal, jawaban peserta, dan status ragu-ragu tanpa memuat teks maupun gambar soal.
 
 ## Menjalankan secara lokal
 
@@ -50,7 +50,8 @@ Drag-and-drop folder mentah di halaman Netlify Drop tidak selalu menyertakan pro
 - Swipe kiri/kanan untuk navigasi soal pada smartphone.
 - Peringatan sisa waktu 10, 5, dan 1 menit dengan bunyi opsional.
 - Ringkasan jawaban sebelum submit dan alasan penghentian jika batas pelanggaran tercapai.
-- Halaman selesai menyediakan Salin Nomor, Unduh Bukti PNG, Kerjakan Lagi, dan Keluar.
+- Halaman selesai menyediakan Salin Nomor, Kerjakan Lagi, dan Keluar.
+- Jika guru mengaktifkan bukti Ringkas, tombol Unduh PDF Ringkas ditampilkan. PDF tidak memuat teks soal, gambar soal, pilihan lain, kunci, ataupun nilai.
 - Kerjakan Lagi selalu meminta konfirmasi karena dapat menghasilkan respons Google Form tambahan.
 
 ## Catatan teknis
