@@ -5,6 +5,9 @@
 [functions]
   node_bundler = "esbuild"
 
+[functions."fetch-form"]
+  timeout = 26
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
@@ -21,4 +24,3 @@
     X-Content-Type-Options = "nosniff"
     X-Frame-Options = "DENY"
     Referrer-Policy = "strict-origin-when-cross-origin"
-
