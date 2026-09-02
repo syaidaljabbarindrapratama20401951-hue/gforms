@@ -2,7 +2,7 @@
 
 Aplikasi Netlify tanpa database yang membaca Google Form publik, menyimpan struktur soal di Netlify Blobs, menampilkan satu soal per layar, lalu meneruskan seluruh jawaban ke endpoint `formResponse` Google Form asli.
 
-Versi 1.2.1 memisahkan progres per sesi: navigasi atau tab baru selalu mulai dari nol, sementara refresh pada tab yang sama tetap memulihkan ujian aktif.
+Versi 2.0.0 menambahkan pemetaan identitas dari Google Form, informasi ujian, token, pengacakan pilihan, pengaturan pelanggaran, tanda ragu-ragu, status jawaban lengkap, ringkasan submit, status koneksi, dan nomor bukti pengiriman.
 
 ## Menjalankan secara lokal
 
@@ -37,9 +37,18 @@ Drag-and-drop folder mentah di halaman Netlify Drop tidak selalu menyertakan pro
 
 1. Atur Google Form agar dapat dibuka dan diisi tanpa login.
 2. Tempel tautannya di halaman admin.
-3. Atur durasi; isi `0` untuk tanpa timer.
-4. Klik **Proses / Generate** dan bagikan tautan ujian.
-5. Jika isi Google Form berubah, klik **Generate Ulang / Refresh Cache**.
+3. Klik **Baca Formulir**.
+4. Periksa field yang ditandai sebagai identitas peserta.
+5. Isi informasi ujian dan pengaturan keamanan.
+6. Klik **Simpan & Buat Link Ujian**, lalu bagikan tautannya.
+7. Jika isi Google Form berubah, klik **Baca Ulang** dan simpan kembali konfigurasi.
+
+## Catatan versi 2.0
+
+- Field identitas menggunakan pertanyaan yang sudah ada di Google Form dan dikirim ke `entry ID` aslinya.
+- Nomor bukti dibuat setelah endpoint Google menerima pengiriman. Nomor tersebut merupakan bukti teknis di layar, bukan nomor respons resmi dari Google karena Google Forms tidak mengembalikan ID respons melalui `formResponse`.
+- Token ujian adalah pembatas akses sederhana dan tidak menggantikan autentikasi peserta.
+- Pengacakan pilihan berlangsung per sesi peserta; nilai jawaban yang dikirim tetap sama dengan opsi Google Form asli.
 
 ## Batasan
 
