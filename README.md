@@ -2,7 +2,7 @@
 
 Aplikasi Netlify tanpa database yang membaca Google Form publik secara langsung, menampilkan satu soal per layar, lalu meneruskan seluruh jawaban ke endpoint `formResponse` Google Form asli.
 
-Versi 2.3.2 memperluas dukungan gambar pertanyaan Google Form, termasuk gambar pada bagian/section lanjutan yang oleh Google hanya dicantumkan sebagai token internal sampai halaman tersebut dirender.
+Versi 2.3.3 memperluas dukungan gambar pertanyaan Google Form, termasuk gambar pada bagian/section lanjutan. Gambar diteruskan melalui Netlify Function agar tidak ditolak oleh perlindungan hotlink/CORS Google.
 
 ## Menjalankan secara lokal
 
