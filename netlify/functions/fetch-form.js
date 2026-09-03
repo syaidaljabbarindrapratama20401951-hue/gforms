@@ -1,4 +1,4 @@
-const TYPE_NAMES={0:'SHORT',1:'LONG',2:'RADIO',3:'DROPDOWN',4:'CHECKBOX',5:'UNSUPPORTED',7:'UNSUPPORTED',9:'UNSUPPORTED',10:'UNSUPPORTED'};
+const TYPE_NAMES={0:'SHORT',1:'LONG',2:'RADIO',3:'DROPDOWN',4:'CHECKBOX',5:'UNSUPPORTED',7:'UNSUPPORTED',9:'UNSUPPORTED',10:'UNSUPPORTED',13:'FILE_UPLOAD'};
 
 exports.handler=async(event)=>{try{
   if(event.httpMethod==='GET')return handleGet(event);
@@ -34,9 +34,9 @@ async function loadForm(formId,resolveImages=false){
   return {...parsed,sourceUrl:canonicalViewUrl(formId),updatedAt:new Date().toISOString()};
 }
 
-function adminForm(record,cached){return{id:encodeExamId({formId:record.formId,config:record.config}),title:record.title,description:record.description,questions:record.questions.map(q=>({entryId:q.entryId,title:q.title,type:q.type,required:q.required})),config:record.config,cached}}
+function adminForm(record,cached){return{id:encodeExamId({formId:record.formId,config:record.config}),title:record.title,description:record.description,questions:record.questions.map(q=>({entryId:q.entryId,title:q.title,type:q.type,required:q.required})),uploadQuestionCount:record.questions.filter(q=>q.type==='FILE_UPLOAD').length,config:record.config,cached}}
 function publicForm(record){return{id:encodeExamId({formId:record.formId,config:record.config}),title:record.title,description:record.description,config:record.config,updatedAt:record.updatedAt,questions:record.questions.map(q=>({...q,isIdentity:false}))}}
-function examQuestions(record){return record.questions.filter(q=>q.type!=='UNSUPPORTED')}
+function examQuestions(record){return record.questions.filter(q=>q.type!=='UNSUPPORTED'&&q.type!=='FILE_UPLOAD')}
 function normaliseConfig(value={}){return{duration:clampNumber(value.duration,0,600,0),sessionName:clean(value.sessionName,80),subject:clean(value.subject,100),className:clean(value.className,80),examDate:/^\d{4}-\d{2}-\d{2}$/.test(value.examDate||'')?value.examDate:'',token:clean(value.token,40),theme:['exam','business','casual'].includes(value.theme)?value.theme:'exam',themeMode:value.themeMode==='dark'?'dark':'light',proofMode:value.proofMode==='summary'?'summary':'off',soundWarnings:Boolean(value.soundWarnings),shuffleOptions:Boolean(value.shuffleOptions),violationsEnabled:value.violationsEnabled!==false,violationLimit:clampNumber(value.violationLimit,1,10,3),instructions:clean(value.instructions,1200),identityEntryIds:[]}}
 
 async function resolveGoogleFormUrl(input){let url;try{url=new URL(input)}catch{throw userError('Format tautan tidak valid.')}if(url.protocol!=='https:')throw userError('Tautan harus menggunakan HTTPS.');if(!['docs.google.com','forms.gle'].includes(url.hostname))throw userError('Gunakan tautan resmi Google Forms.');if(url.hostname==='forms.gle'){const r=await fetch(url,{redirect:'manual',headers:{'user-agent':'Mozilla/5.0'}}),next=r.headers.get('location');if(!next)throw userError('Tautan forms.gle tidak dapat dibuka.');return resolveGoogleFormUrl(new URL(next,url).href)}extractFormId(url.href);return url.href}
@@ -62,7 +62,7 @@ async function resolveQuestionImages(formId,initialHtml,form){
   for(const q of form.questions){q.images=uniqueImages([...(q.images||[]),...(q.imageTokens||[]).map(token=>imageMap.get(token))]);q.image=q.images[0]||null}
   return form;
 }
-function unsupportedLabel(code){return({5:'Skala linear',7:'Grid',9:'Tanggal',10:'Waktu'})[code]||'Tipe khusus'}
+function unsupportedLabel(code){return({5:'Skala linear',7:'Grid',9:'Tanggal',10:'Waktu',13:'Upload file'})[code]||'Tipe khusus'}
 function extractFormId(url){const m=String(url).match(/\/forms\/d\/e\/([a-zA-Z0-9_-]+)/);if(!m)throw userError('Tautan harus berupa Google Form publik dengan format /forms/d/e/...');return m[1]}
 function encodeExamId(payload){return Buffer.from(JSON.stringify({v:2,f:payload.formId,c:normaliseConfig(payload.config)})).toString('base64url')}
 function decodeExamId(value){if(typeof value!=='string')throw userError('ID ujian tidak valid.');let decoded;try{decoded=Buffer.from(value,'base64url').toString('utf8')}catch{throw userError('ID ujian tidak valid.')}try{const p=JSON.parse(decoded);if(p?.v===2&&validFormId(p.f))return{formId:p.f,config:normaliseConfig(p.c)}}catch{}if(validFormId(decoded))return{formId:decoded,config:normaliseConfig({})};throw userError('ID ujian tidak valid.')}
