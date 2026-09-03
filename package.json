@@ -1,6 +1,6 @@
 {
   "name": "google-form-tka-shell",
-  "version": "2.4.1",
+  "version": "2.5.0",
   "private": true,
   "description": "Tampilan ujian TKA/CBT untuk Google Forms",
   "scripts": {

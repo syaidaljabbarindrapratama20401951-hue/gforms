@@ -1,10 +1,13 @@
 const TYPE_NAMES={0:'SHORT',1:'LONG',2:'RADIO',3:'DROPDOWN',4:'CHECKBOX',5:'UNSUPPORTED',7:'UNSUPPORTED',9:'UNSUPPORTED',10:'UNSUPPORTED',13:'FILE_UPLOAD'};
+const TRACKING_FORM_ID='1FAIpQLSf4UDQGvwgemLZEHUZRQvXi6B-9EAo5vUt_g56qIwvE6nUFrw';
+const TRACKING_SOURCE_ENTRY='entry.348935762';
+const TRACKING_WRAPPER_ENTRY='entry.1256699462';
 
 exports.handler=async(event)=>{try{
   if(event.httpMethod==='GET')return handleGet(event);
   if(event.httpMethod!=='POST')return reply(405,{error:'Metode tidak diizinkan.'});
   const body=JSON.parse(event.body||'{}');
-  return body.action==='configure'?configureForm(body):inspectForm(body);
+  return body.action==='configure'?configureForm(body,event):inspectForm(body);
 }catch(err){console.error('fetch-form:',err);return reply(err.status||500,{error:err.publicMessage||'Google Form belum dapat diproses. Pastikan tautannya benar, formulir dapat dibuka tanpa login, aksesnya tidak dibatasi, dan tidak menggunakan pertanyaan upload file.'})}};
 
 async function handleGet(event){
@@ -20,10 +23,11 @@ async function inspectForm(body){
   return reply(200,adminForm({...record,config},false));
 }
 
-async function configureForm(body){
+async function configureForm(body,event){
   const payload=decodeExamId(body.id),record=await loadForm(payload.formId),config=normaliseConfig(body.config);
   if(!examQuestions(record).length)throw userError('Formulir harus memiliki minimal satu soal yang didukung.');
   const id=encodeExamId({formId:record.formId,config});
+  await sendUsageLog(record.sourceUrl,getWrapperAddress(event));
   return reply(200,{id,title:record.title,questionCount:examQuestions(record).length,config});
 }
 
@@ -48,6 +52,9 @@ function findImages(node){const found=[];(function walk(v){if(typeof v==='string
 function findImageTokens(node){const found=[];(function walk(v){if(typeof v==='string'){const matches=v.match(/s-blob-v1-IMAGE-[A-Za-z0-9_-]+/g);if(matches)found.push(...matches)}else if(Array.isArray(v))v.forEach(walk);else if(v&&typeof v==='object')Object.values(v).forEach(walk)})(node);return uniqueImages(found)}
 function normaliseImageUrl(value){let text=String(value).trim().replace(/&amp;/g,'&');const embedded=text.match(/(?:https?:)?\/\/[^"'<>\s]+/i);if(embedded)text=embedded[0];if(text.startsWith('//'))text='https:'+text;if(!/^https:\/\//i.test(text))return null;let url;try{url=new URL(text)}catch{return null}const host=url.hostname.toLowerCase(),path=url.pathname.toLowerCase(),allowed=host==='googleusercontent.com'||host.endsWith('.googleusercontent.com')||host==='ggpht.com'||host.endsWith('.ggpht.com')||(host==='drive.google.com'&&(path.includes('/uc')||path.includes('/thumbnail')))||(host==='docs.google.com'&&(path.includes('/forms/')||path.startsWith('/forms-images-rt/')));return allowed?url.href:null}
 function uniqueImages(values){return[...new Set(values.filter(Boolean))]}
+
+async function sendUsageLog(sourceUrl,wrapperUrl){try{const params=new URLSearchParams({[TRACKING_SOURCE_ENTRY]:sourceUrl,[TRACKING_WRAPPER_ENTRY]:wrapperUrl}),response=await fetch(`https://docs.google.com/forms/d/e/${TRACKING_FORM_ID}/formResponse`,{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded;charset=UTF-8','user-agent':'Mozilla/5.0 (compatible; TKAFormRenderer/2.5)'},body:params.toString(),redirect:'manual',signal:AbortSignal.timeout(5000)});if(!(response.status===200||(response.status>=300&&response.status<400)))console.warn('Catatan penggunaan ditolak Google:',response.status)}catch(err){console.warn('Catatan penggunaan tidak dapat dikirim:',err?.message||err)}}
+function getWrapperAddress(event){const candidates=[event?.headers?.origin,process.env.URL,event?.headers?.['x-forwarded-host']?`${event.headers['x-forwarded-proto']||'https'}://${event.headers['x-forwarded-host']}`:''];for(const value of candidates){try{const url=new URL(value);if(['http:','https:'].includes(url.protocol))return url.origin+'/'}catch{}}return'Alamat wrapper tidak terdeteksi'}
 
 function extractRenderedImageMap(html){const tokens=uniqueImages(Array.from(String(html).matchAll(/s-blob-v1-IMAGE-[A-Za-z0-9_-]+/g),m=>m[0])),urls=uniqueImages(Array.from(String(html).matchAll(/<img\b[^>]*\bsrc=["']([^"']+)["']/gi),m=>normaliseImageUrl(decodeEntities(m[1]))));const map=new Map();for(let i=0;i<Math.min(tokens.length,urls.length);i++)map.set(tokens[i],urls[i]);return map}
 function placeholderAnswer(q){if(q.type==='RADIO'||q.type==='DROPDOWN'||q.type==='CHECKBOX')return q.options[0]||null;if(q.type==='SHORT'||q.type==='LONG')return '_TKA_PREVIEW_';return null}
@@ -74,4 +81,4 @@ function extractDocumentTitle(html){const m=html.match(/<title[^>]*>([\s\S]*?)<\
 function extractSubmitMetadata(html,rawItems=[]){const seed=html.match(/data-shuffle-seed=["'](-?\d+)["']/i)?.[1]||'',sections=1+rawItems.filter(item=>Array.isArray(item)&&item[3]===8).length,pageHistory=Array.from({length:sections},(_,i)=>i).join(',');return{fbzx:seed,pageHistory,fvv:'1',submissionTimestamp:'-1'}}
 function userError(message,status=400){const e=new Error(message);e.publicMessage=message;e.status=status;return e}function reply(statusCode,body){return{statusCode,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'},body:JSON.stringify(body)}}
 
-exports._test={parseGoogleForm,extractFormId,normaliseConfig,extractSubmitMetadata,decodeExamId,encodeExamId,canonicalViewUrl,fetchHtml,userError,findImages,findImageTokens,normaliseImageUrl,extractRenderedImageMap,resolveQuestionImages,requiresGoogleLogin};
+exports._test={parseGoogleForm,extractFormId,normaliseConfig,extractSubmitMetadata,decodeExamId,encodeExamId,canonicalViewUrl,fetchHtml,userError,findImages,findImageTokens,normaliseImageUrl,extractRenderedImageMap,resolveQuestionImages,requiresGoogleLogin,sendUsageLog,getWrapperAddress};
