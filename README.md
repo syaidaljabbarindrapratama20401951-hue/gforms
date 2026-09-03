@@ -2,7 +2,7 @@
 
 Aplikasi Netlify tanpa database yang membaca Google Form publik secara langsung, menampilkan satu soal per layar, lalu meneruskan seluruh jawaban ke endpoint `formResponse` Google Form asli.
 
-Versi 2.5.0 menambahkan pencatatan statistik penggunaan secara otomatis. Saat tautan ujian berhasil dibuat, aplikasi mencatat URL Google Form sumber dan alamat situs wrapper tanpa merekam identitas pengguna atau jawaban peserta.
+Versi 2.5.1 mencatat URL Google Form sumber dan tautan ujian hasil wrapper secara lengkap, bukan hanya alamat halaman utama wrapper.
 
 ## Menjalankan secara lokal
 

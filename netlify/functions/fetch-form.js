@@ -27,7 +27,7 @@ async function configureForm(body,event){
   const payload=decodeExamId(body.id),record=await loadForm(payload.formId),config=normaliseConfig(body.config);
   if(!examQuestions(record).length)throw userError('Formulir harus memiliki minimal satu soal yang didukung.');
   const id=encodeExamId({formId:record.formId,config});
-  await sendUsageLog(record.sourceUrl,getWrapperAddress(event));
+  await sendUsageLog(record.sourceUrl,getWrapperAddress(event,id));
   return reply(200,{id,title:record.title,questionCount:examQuestions(record).length,config});
 }
 
@@ -54,7 +54,7 @@ function normaliseImageUrl(value){let text=String(value).trim().replace(/&amp;/g
 function uniqueImages(values){return[...new Set(values.filter(Boolean))]}
 
 async function sendUsageLog(sourceUrl,wrapperUrl){try{const params=new URLSearchParams({[TRACKING_SOURCE_ENTRY]:sourceUrl,[TRACKING_WRAPPER_ENTRY]:wrapperUrl}),response=await fetch(`https://docs.google.com/forms/d/e/${TRACKING_FORM_ID}/formResponse`,{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded;charset=UTF-8','user-agent':'Mozilla/5.0 (compatible; TKAFormRenderer/2.5)'},body:params.toString(),redirect:'manual',signal:AbortSignal.timeout(5000)});if(!(response.status===200||(response.status>=300&&response.status<400)))console.warn('Catatan penggunaan ditolak Google:',response.status)}catch(err){console.warn('Catatan penggunaan tidak dapat dikirim:',err?.message||err)}}
-function getWrapperAddress(event){const candidates=[event?.headers?.origin,process.env.URL,event?.headers?.['x-forwarded-host']?`${event.headers['x-forwarded-proto']||'https'}://${event.headers['x-forwarded-host']}`:''];for(const value of candidates){try{const url=new URL(value);if(['http:','https:'].includes(url.protocol))return url.origin+'/'}catch{}}return'Alamat wrapper tidak terdeteksi'}
+function getWrapperAddress(event,examId=''){const candidates=[event?.headers?.origin,process.env.URL,event?.headers?.['x-forwarded-host']?`${event.headers['x-forwarded-proto']||'https'}://${event.headers['x-forwarded-host']}`:''];for(const value of candidates){try{const url=new URL(value);if(['http:','https:'].includes(url.protocol))return examId?new URL(`/ujian/${encodeURIComponent(examId)}`,url.origin).href:url.origin+'/'}catch{}}return'Tautan hasil wrapper tidak terdeteksi'}
 
 function extractRenderedImageMap(html){const tokens=uniqueImages(Array.from(String(html).matchAll(/s-blob-v1-IMAGE-[A-Za-z0-9_-]+/g),m=>m[0])),urls=uniqueImages(Array.from(String(html).matchAll(/<img\b[^>]*\bsrc=["']([^"']+)["']/gi),m=>normaliseImageUrl(decodeEntities(m[1]))));const map=new Map();for(let i=0;i<Math.min(tokens.length,urls.length);i++)map.set(tokens[i],urls[i]);return map}
 function placeholderAnswer(q){if(q.type==='RADIO'||q.type==='DROPDOWN'||q.type==='CHECKBOX')return q.options[0]||null;if(q.type==='SHORT'||q.type==='LONG')return '_TKA_PREVIEW_';return null}
